@@ -23,6 +23,21 @@ class Zero(Initializer):
     def call(self,size):
         return _cast_dtype(np.zeros(size))
 
+class Uniform(Initializer):
+    def __init__(self, scale=0.05):
+        self.scale = scale
+
+    def call(self,size):
+        return _cast_dtype(get_rng().uniform(-self.scale,self.scale,size=size))
+
+class Normal(Initializer):
+    def __init__(self,std=0.01,mean=0.0):
+        self.std = std
+        self.mean = mean
+
+    def call(self,size):
+        return _cast_dtype(get_rng().normal(loc=self.mean,scale=self.std,size=size))
+
 def _cast_dtype(res):
     return np.array(res, dtype=get_dtype())
 
