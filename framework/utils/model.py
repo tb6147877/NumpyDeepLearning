@@ -71,7 +71,37 @@ class Model():
                 for layer in self.layers[::-1]:
                     next_grad = layer.backward(next_grad)
 
+                params=[]
+                grads=[]
+                for layer in self.layers:
+                    params+=layer.params
+                    grads+=layer.grads
 
+                self.optimizer.update(params,grads)
+
+                train_losses.append(self.loss.forward(y_pred,y_batch))
+                train_predicts.extend(y_pred)
+                train_targets.extend(y_batch)
+
+            runout = "iter %d, train-[loss %.4f, acc %.4f];"%(iter_idx, float(np.mean(train_losses)),float(self.accuracy(train_predicts,train_targets)))
+
+            if valid_X is not None and valid_Y is not None:
+                valid_losses, valid_predicts, valid_targets = [], [], []
+                for b in range(valid_X.shape[0] // batch_size):
+                    batch_begin = b * batch_size
+                    batch_end = batch_begin + batch_size
+                    x_batch = valid_X[batch_begin:batch_end]
+                    y_batch = valid_Y[batch_begin:batch_end]
+
+                    y_pred = self.predict(x_batch)
+
+                    valid_losses.append(self.loss.forward(y_pred, y_batch))
+                    valid_predicts.extend(y_pred)
+                    valid_targets.extend(y_batch)
+
+                runout = "valid-[loss %.4f, acc %.4f];" % (
+                 float(np.mean(valid_losses)), float(self.accuracy(valid_predicts, valid_targets)))
+            print(runout)
 
     def predict(self, X):
         x_next=X
@@ -79,4 +109,10 @@ class Model():
             x_next = layer.forward(x_next)
         y_pred = x_next
         return y_pred
+
+    def accuracy(self, outputs, targets):
+        y_predicts = np.argmax(outputs,axis=1)
+        y_targets = np.argmax(targets,axis=1)
+        acc = y_predicts==y_targets
+        return np.mean(acc)
 
