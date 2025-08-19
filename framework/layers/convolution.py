@@ -46,3 +46,8 @@ class Convolution(Layer):
 
         self.W = self.init((self.nb_filter,pre_nb_filter,filter_height,filter_width))
         self.b = _zero((self.nb_filter,))
+
+    def forward(self, input, *args, **kwargs):
+        self.last_input = input
+
+        nb_batch
