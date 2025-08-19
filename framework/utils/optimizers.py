@@ -3,7 +3,7 @@ import copy
 import numpy as np
 
 
-from initializations import _zero
+from framework.utils.initializations import _zero
 
 class Optimizer():
     def __init__(self, lr = 0.001, clip=-1, decay=0.0, lr_min=0.0, lr_max=np.inf):

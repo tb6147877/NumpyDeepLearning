@@ -17,6 +17,7 @@ eggs/
 .idea/
 lib/
 lib64/
+data/
 parts/
 sdist/
 var/

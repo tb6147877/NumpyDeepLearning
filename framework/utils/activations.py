@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from random import get_dtype
+from framework.utils.random import get_dtype
 
 
 class Activation():

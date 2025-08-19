@@ -2,11 +2,11 @@ import numpy as np
 
 from framework.layers.base import Layer
 from framework.utils.objectives import SoftmaxCategoricalCrossEntropy
-from optimizers import SGD
-from random import get_dtype
-from random import get_rng
-import optimizers
-import objectives
+from framework.utils.optimizers import SGD
+from framework.utils.random import get_dtype
+from framework.utils.random import get_rng
+import framework.utils.optimizers as optimizers
+import framework.utils.objectives as objectives
 
 import sys
 
