@@ -50,4 +50,9 @@ class Convolution(Layer):
     def forward(self, input, *args, **kwargs):
         self.last_input = input
 
-        nb_batch
+        nb_batch, input_depth, old_img_h, old_img_w=input.shape
+
+    def zero_pad(X, pad):
+        X_pad = np.pad(X, ((0, 0), (0, 0), (pad, pad), (pad, pad)), "constant", constant_values=0)  # X的shapo是(m, n_c, n_h, n_w)，m和n_c都不用填充，n_h和n_w上下各填pad
+
+        return X_pad
