@@ -84,6 +84,7 @@ class Model():
                 train_targets.extend(y_batch)
 
             runout = "iter %d, train-[loss %.4f, acc %.4f];"%(iter_idx, float(np.mean(train_losses)),float(self.accuracy(train_predicts,train_targets)))
+            print(runout)
 
             if valid_X is not None and valid_Y is not None:
                 valid_losses, valid_predicts, valid_targets = [], [], []

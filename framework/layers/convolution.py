@@ -51,8 +51,86 @@ class Convolution(Layer):
         self.last_input = input
 
         nb_batch, input_depth, old_img_h, old_img_w=input.shape
+        filter_h, filter_w = self.filter_size
+        new_img_h, new_img_w = self.out_shape[2:]
+        input_pad = self.zero_pad(input, self.pad)
 
-    def zero_pad(X, pad):
-        X_pad = np.pad(X, ((0, 0), (0, 0), (pad, pad), (pad, pad)), "constant", constant_values=0)  # X的shapo是(m, n_c, n_h, n_w)，m和n_c都不用填充，n_h和n_w上下各填pad
+        outputs=_zero((nb_batch, self.nb_filter, new_img_h, new_img_w))
+
+        for x in np.arange(nb_batch):
+            for y in np.arange(self.nb_filter):
+                for h in np.arange(new_img_h):
+                    for w in np.arange(new_img_w):
+                        h_shift = h*self.stride
+                        w_shift = w*self.stride
+                        patch = input_pad[x,:,h_shift:h_shift+filter_h,w_shift:w_shift+filter_w]# patch: (input_depth, filter_h, filter_w)
+                        outputs[x,y,h,w]=np.sum(patch*self.W[y])+self.b[y]
+
+        self.last_output = self.activation.forward(outputs)  # self.last_output: (nb_batch, output_depth, image height, image width)
+
+        return self.last_output
+
+
+    def backward(self, pre_grad, *args, **kwargs):
+        assert pre_grad.shape == self.last_output.shape
+
+        nb_batch, input_depth, old_img_h, old_img_w = self.last_input.shape
+        new_img_h, new_img_w = self.out_shape[2:]
+        filter_h, filter_w = self.filter_size
+
+        self.dW = _zero(self.W.shape)
+        self.db = _zero(self.b.shape)
+
+        delta = pre_grad*self.activation.derivative()
+
+        last_input_pad = self.zero_pad(self.last_input,self.pad)
+
+        for r in np.arange(self.nb_filter):
+            for t in np.arange(input_depth):
+                for h in np.arange(filter_h):
+                    for w in np.arange(filter_w):
+                        input_window = last_input_pad[:,t,h:old_img_h+2*self.pad-filter_h+h+1:self.stride,w:old_img_w+2*self.pad-filter_w+w+1:self.stride]
+                        delta_window = delta[:,r]
+                        self.dW[r,t,h,w] = np.sum(input_window*delta_window)/nb_batch
+
+        for r in np.arange(self.nb_filter):
+            self.db[r] = np.sum(delta[:,r])/nb_batch
+
+        if not self.first_layer:
+            layer_grads = _zero(self.last_input.shape)
+            layer_grads_pad=self.zero_pad(layer_grads,self.pad)
+
+            for b in np.arange(nb_batch):
+                for r in np.arange(self.nb_filter):
+                    for t in np.arange(input_depth):
+                        for h in np.arange(new_img_h):
+                            for w in np.arange(new_img_w):
+                                h_shift = h*self.stride
+                                w_shift = w*self.stride
+                                layer_grads_pad[b,t,h_shift:h_shift+filter_h,w_shift:w_shift+filter_w]+=self.W[r,t]*delta[b,r,h,w]
+
+            if self.pad>0:
+                layer_grads_pad = layer_grads_pad[:,:,self.pad:-self.pad,self.pad:-self.pad]
+
+            return layer_grads_pad
+
+
+
+
+
+
+
+
+    def zero_pad(self,X, pad):
+        X_pad = np.pad(X, ((0, 0), (0, 0), (pad, pad), (pad, pad)), "constant", constant_values=0)  # X的shape是(m, n_c, n_h, n_w)，m和n_c都不用填充，n_h和n_w上下各填pad
 
         return X_pad
+
+    @property
+    def params(self):
+        return self.W, self.b
+
+    @property
+    def grads(self):
+        return self.dW, self.db
+
