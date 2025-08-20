@@ -70,7 +70,6 @@ class Convolution(Layer):
 
         return self.last_output
 
-
     def backward(self, pre_grad, *args, **kwargs):
         assert pre_grad.shape == self.last_output.shape
 
@@ -114,13 +113,6 @@ class Convolution(Layer):
 
             return layer_grads_pad
 
-
-
-
-
-
-
-
     def zero_pad(self,X, pad):
         X_pad = np.pad(X, ((0, 0), (0, 0), (pad, pad), (pad, pad)), "constant", constant_values=0)  # X的shape是(m, n_c, n_h, n_w)，m和n_c都不用填充，n_h和n_w上下各填pad
 
@@ -133,4 +125,3 @@ class Convolution(Layer):
     @property
     def grads(self):
         return self.dW, self.db
-
